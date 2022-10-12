@@ -28,6 +28,8 @@ struct BINGREP_File {
 
 static void close_fd(BINGREP_File* file);
 static void free_content(BINGREP_File* file);
+static void unmap_memory(BINGREP_File* file);
+static void free_buffer(BINGREP_File* file);
 
 // --------
 
@@ -41,15 +43,25 @@ static void close_fd(BINGREP_File* file) {
 
 static void free_content(BINGREP_File* file) {
 	if(file->is_memory_mapped) {
-		if(file->start_address != MAP_FAILED) {
-			munmap(file->start_address, file->filesize);
-		}
+		unmap_memory(file);
 	}
 	else {
-		free(file->start_address);
+		free_buffer(file);
 	}
 	file->start_address = NULL;
 	file->is_memory_mapped = 0;
+	return;
+}
+
+static void unmap_memory(BINGREP_File* file) {
+	if(file->start_address != MAP_FAILED) {
+		munmap(file->start_address, file->filesize);
+	}
+	return;
+}
+
+static void free_buffer(BINGREP_File* file) {
+	free(file->start_address);
 	return;
 }
 
