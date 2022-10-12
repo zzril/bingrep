@@ -69,16 +69,16 @@ int main(int argc, char* argv[]) {
 	// Parse hexstring:
 	signature_length = parse_hexstring(signature, argv[1]);
 
-	BINGREP_File file;
-	BINGREP_open_file_at(&file, pathname);
+	BINGREP_File* file = BINGREP_open_file(pathname);
+	if(file == NULL) { perror("BINGREP_open_file"); exit(EXIT_FAILURE); }
 
-	long num_matches = BINGREP_find_signature(&file, signature, signature_length, &print_offset_verbose);
+	long num_matches = BINGREP_find_signature(file, signature, signature_length, &print_offset_verbose);
 
 	//printf("Found %lu match(es) in total.\n", num_matches);
 	printf("Found %ld match(es) in total.\n", num_matches);
 
 	// Free resources and exit:
-	BINGREP_close_file_at(&file);
+	BINGREP_close_file(file);
 	exit(EXIT_SUCCESS);
 }
 
