@@ -3,8 +3,8 @@ bingrep
 
 Find byte sequences in a file.
 
-Info:
------
+General:
+--------
 
 A small command-line utility for searching byte signatures within a file.  
 Should be somewhat script-friendly and can be for example used to find  
