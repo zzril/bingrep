@@ -41,6 +41,7 @@ void BINGREP_close_file(BINGREP_File* file);
  * Searches for the byte sequence given in `signature` within `file`.
  * For each sequence found, `callback` is executed with the `offset` argument 
  * being the offset within the file where `signature` started.
+ * If `callback` is NULL, no operation will be performed.
  * Returns the number of matches found or -1, if an error occured.
  */
 long BINGREP_find_signature	(	BINGREP_File* file, char* signature,

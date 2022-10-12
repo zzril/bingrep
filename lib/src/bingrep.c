@@ -31,6 +31,8 @@ static void free_content(BINGREP_File* file);
 static void unmap_memory(BINGREP_File* file);
 static void free_buffer(BINGREP_File* file);
 
+static void print_nothing(ptrdiff_t offset);
+
 // --------
 
 static void close_fd(BINGREP_File* file) {
@@ -64,6 +66,14 @@ static void free_buffer(BINGREP_File* file) {
 	free(file->start_address);
 	return;
 }
+
+// Called when `callback` is specified as NULL:
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+static void print_nothing(ptrdiff_t offset) {
+	return;
+}
+#pragma clang diagnostic pop
 
 // --------
 
@@ -121,6 +131,8 @@ long BINGREP_find_signature(BINGREP_File* file, char* signature, size_t signatur
 	size_t num_matches = 0;
 	char* search_start = file_start;
 
+	BINGREP_MatchHandler match_handler = callback == NULL ? &print_nothing : callback;
+
 	while(search_start + signature_length <= file_end) {
 		char* match_addr = (char*) memmem((void*) search_start, file_size, signature, signature_length);
 		if(match_addr != NULL) {
@@ -128,7 +140,7 @@ long BINGREP_find_signature(BINGREP_File* file, char* signature, size_t signatur
 			if(!(num_matches > 0)) {
 				fputs("WARNING: Number of matches incorrect due to integer overflow.\n", stderr);
 			}
-			callback(match_addr - file_start);
+			match_handler(match_addr - file_start);
 		}
 		else { // no more matches
 			break;

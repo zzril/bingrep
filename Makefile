@@ -42,7 +42,7 @@ lib: $(LIB_BIN)
 
 # --------
 
-$(BIN): $(SRC) $(HEADERS) $(LIB_BIN)
+$(BIN): $(SRC) $(LIB_BIN) $(HEADERS)
 	mkdir -p $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $< $(LIB_BIN)
 
