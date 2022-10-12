@@ -35,7 +35,7 @@ static void parse_flags(int argc, char** argv, Options* options);
 static void finish_flags(int argc, char** argv, Options* options);
 static size_t parse_hexstring(char* dest, const char* hexstring, size_t dest_length);
 
-static void print_usage_msg(FILE* stream, char* program_name);
+static void print_usage_msg(FILE* stream, char* program_name, int detailed);
 
 static void print_offset(ptrdiff_t offset);
 static void print_offset_verbose(ptrdiff_t offset);
@@ -85,7 +85,7 @@ static void parse_flags(int argc, char** argv, Options* options) {
 				options->count = 1;
 				break;
 			case 'h':
-				print_usage_msg(stdout, argv[0]);
+				print_usage_msg(stdout, argv[0], 1);
 				free_and_exit(EXIT_SUCCESS);
 				break;
 			case 's':
@@ -95,7 +95,7 @@ static void parse_flags(int argc, char** argv, Options* options) {
 				options->verbose = 1;
 				break;
 			default:
-				print_usage_msg(stderr, argv[0]);
+				print_usage_msg(stderr, argv[0], 0);
 				free_and_exit(EXIT_FAILURE);
 		}
 	}
@@ -105,7 +105,7 @@ static void parse_flags(int argc, char** argv, Options* options) {
 
 static void finish_flags(int argc, char** argv, Options* options) {
 	if(argc != optind + 2) {
-		print_usage_msg(stderr, argv[0]);
+		print_usage_msg(stderr, argv[0], 0);
 		free_and_exit(EXIT_FAILURE);
 	}
 	if(options->verbose < 0) {
@@ -125,8 +125,18 @@ static void finish_flags(int argc, char** argv, Options* options) {
 	return;
 }
 
-static void print_usage_msg(FILE* stream, char* program_name) {
+static void print_usage_msg(FILE* stream, char* program_name, int detailed) {
 	fprintf(stream, "Usage: %s [-chsv] hex_signature filename\n", program_name);
+	if(detailed && stream == stdout) {
+		puts("");
+		puts("Options:");
+		puts("-c: Count: Instead of normal output, only print the number of matches.");
+		puts("-h: Help: Print a usage message (with options) and exit.");
+		puts("-s: Silent: Do not output anything. Return code will (as in the other");
+		puts("    cases) be 0 iff at least one match was found and no error occured.");
+		puts("-v: Verbose: Print actual text, not just numbers. Always recommended if");
+		puts("    your're not running this as part of a pipeline.");
+	}
 	return;
 }
 

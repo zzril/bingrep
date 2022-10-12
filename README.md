@@ -20,8 +20,9 @@ Usage:
 
 Options:
 * `-c`: Count: Instead of normal output, only print the number of matches.
-* `-h`: Help: Print a (short) usage message and exit.
-* `-s`: Silent: Do not output anything.
+* `-h`: Help: Print a usage message (with options) and exit.
+* `-s`: Silent: Do not output anything. Return code will (as in the other  
+cases) be 0 iff at least one match was found and no error occured.
 * `-v`: Verbose: Print actual text, not just numbers. Always recommended if  
 your're not running this as part of a pipeline.
 
