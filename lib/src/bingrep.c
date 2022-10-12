@@ -118,7 +118,10 @@ void BINGREP_close_file(BINGREP_File* file) {
 	return;
 }
 
-long BINGREP_find_signature(BINGREP_File* file, char* signature, size_t signature_length, BINGREP_MatchHandler callback) {
+long BINGREP_find_signature	(	BINGREP_File* file, char* signature,
+					size_t signature_length,
+					BINGREP_MatchHandler callback,
+					int finish_early	) {
 
 	if(file == NULL) {
 		return -1;
@@ -133,7 +136,9 @@ long BINGREP_find_signature(BINGREP_File* file, char* signature, size_t signatur
 
 	BINGREP_MatchHandler match_handler = callback == NULL ? &print_nothing : callback;
 
-	while(search_start + signature_length <= file_end) {
+	int finish = 0;
+
+	while(search_start + signature_length <= file_end && !finish) {
 		char* match_addr = (char*) memmem((void*) search_start, file_size, signature, signature_length);
 		if(match_addr != NULL) {
 			num_matches++;
@@ -141,6 +146,8 @@ long BINGREP_find_signature(BINGREP_File* file, char* signature, size_t signatur
 				fputs("WARNING: Number of matches incorrect due to integer overflow.\n", stderr);
 			}
 			match_handler(match_addr - file_start);
+			// If `finish_early` is specified, break now:
+			finish = finish_early;
 		}
 		else { // no more matches
 			break;

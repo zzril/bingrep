@@ -42,11 +42,14 @@ void BINGREP_close_file(BINGREP_File* file);
  * For each sequence found, `callback` is executed with the `offset` argument 
  * being the offset within the file where `signature` started.
  * If `callback` is NULL, no operation will be performed.
+ * If `finish_early` is not 0 and `callback` is NULL, processing will stop
+ * after the first match.
  * Returns the number of matches found or -1, if an error occured.
  */
 long BINGREP_find_signature	(	BINGREP_File* file, char* signature,
 					size_t signature_length,
-					BINGREP_MatchHandler callback	);
+					BINGREP_MatchHandler callback,
+					int finish_early	);
 
 // --------
 #endif

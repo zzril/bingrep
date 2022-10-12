@@ -23,6 +23,7 @@ typedef struct {
 typedef struct {
 	int verbose;
 	int count;
+	int finish_early;
 	BINGREP_MatchHandler match_handler;
 	ResultPrinter result_printer;
 } Options;
@@ -110,12 +111,14 @@ static void finish_flags(int argc, char** argv, Options* options) {
 	if(options->verbose < 0) {
 		options->match_handler = NULL;
 		options->result_printer = NULL;
+		options->finish_early = 1;
 	}
 	if(options->verbose > 0) {
 		options->match_handler = &print_offset_verbose;
 		options->result_printer = &print_results_verbose;
 	}
 	if(options->count) {
+		options->finish_early = 0;
 		options->match_handler = NULL;
 		options->result_printer = &print_result_count_only;
 	}
@@ -196,6 +199,7 @@ int main(int argc, char** argv) {
 	Options options = {
 		0,		// verbose
 		0,		// count
+		0,		// finish_early
 		&print_offset,	// match_handler
 		NULL,		// result_printer
 	};
@@ -203,7 +207,7 @@ int main(int argc, char** argv) {
 	parse_args(argc, argv, &options);
 
 	// Search for signature:
-	long num_matches = BINGREP_find_signature(g_resources.file, g_resources.signature, g_resources.signature_length, options.match_handler);
+	long num_matches = BINGREP_find_signature(g_resources.file, g_resources.signature, g_resources.signature_length, options.match_handler, options.finish_early);
 
 	// Free resources:
 	free_resources();
