@@ -1,14 +1,51 @@
 NAME=bingrep
+MAIN=main
+LIB_NAME=$(NAME)
 
-SRC=$(NAME).c
-BIN=$(NAME)
+SRC_DIR=./src
+BIN_DIR=./bin
+LIB_DIR=./lib
+
+LIB_SRC_DIR=$(LIB_DIR)/src
+LIB_BIN_DIR=$(LIB_DIR)/bin
+
+SRC=$(SRC_DIR)/$(MAIN).c
+BIN=$(BIN_DIR)/$(NAME)
+
+LIB_SRC=$(LIB_SRC_DIR)/$(LIB_NAME).c
+LIB_BIN=$(LIB_BIN_DIR)/$(LIB_NAME).so
+
+# --------
 
 CC=clang
+
 CFLAGS=-Wall -Wextra -pedantic
+LDFLAGS=-L $(LIB_BIN_DIR) -l$(LIB_NAME)
 
-all: $(BIN)
+LIB_CFLAGS=$(CFLAGS) -shared -fPIC
+#LIB_LD_FLAGS=$(CFLAGS) # no additional libraries used atm
 
-$(BIN): $(SRC)
-	$(CC) -o $@ $^
+RM=rm
+
+# --------
+
+all: lib main
+
+clean:
+	$(RM) ./$(BIN) ./$(LIB_BIN) || true
+
+main: $(BIN)
+
+lib: $(LIB_BIN)
+
+# --------
+
+$(BIN): $(SRC) $(LIB_BIN)
+	mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^ $(LD_FLAGS)
+
+$(LIB_BIN): $(LIB_SRC)
+	mkdir -p $(LIB_BIN_DIR)
+	$(CC) $(LIB_CFLAGS) -o $@ $^
 
 

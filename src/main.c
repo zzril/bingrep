@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "../lib/src/bingrep.h"
+
 // --------
 
 #define MAX_SIGNATURE_LEN 0x40
