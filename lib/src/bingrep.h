@@ -17,9 +17,6 @@ typedef void (*BINGREP_MatchHandler)(ptrdiff_t offset);
 
 // --------
 
-/**
- * (`file` must be already allocated.)
- */
 BINGREP_File* BINGREP_open_file(const char* pathname);
 void BINGREP_close_file(BINGREP_File* file);
 
