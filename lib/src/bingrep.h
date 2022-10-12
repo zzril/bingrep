@@ -31,6 +31,7 @@ typedef void (*BINGREP_MatchHandler)(ptrdiff_t);
  * allocation failed.
  */
 BINGREP_File* BINGREP_open_file(const char* pathname, BINGREP_flags_t flags);
+
 /**
  * Releases the resources allocated for `file`.
  * Does nothing if `file` is NULL.
