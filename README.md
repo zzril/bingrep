@@ -40,4 +40,11 @@ Test:
 * The script `run.sh` will run some tests on the examples in `./examples` with  
 the verbose flag.
 
+Contribute:
+-----------
+
+If you have any suggestions, notice any bugs etc., feel free to open an issue  
+about it.  
+Direct contributions via pull requests are also welcome.
+
 
