@@ -29,6 +29,8 @@ static int g_filedes = -1;
 static void free_and_exit(int exit_code);
 static void print_usage_msg(FILE* stream, char* program_name);
 static size_t parse_hexstring(char* dest, const char* hexstring);
+static void print_offset(ptrdiff_t offset);
+static void print_offset_verbose(ptrdiff_t offset);
 
 // --------
 
@@ -67,6 +69,14 @@ static size_t parse_hexstring(char* dest, const char* hexstring) {
 	return chars_read;
 }
 
+static void print_offset(ptrdiff_t offset) {
+	printf("0x%lx\n", offset);
+}
+
+static void print_offset_verbose(ptrdiff_t offset) {
+	printf("Found signature at offset 0x%lx.\n", offset);
+}
+
 // --------
 
 int main(int argc, char* argv[]) {
@@ -95,22 +105,9 @@ int main(int argc, char* argv[]) {
 	void* mapped_file = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, g_filedes, 0);
 	if(mapped_file == MAP_FAILED) { perror("mmap"); free_and_exit(EXIT_FAILURE); }
 
-	// Find all occurences of signature within file:
-	int num_matches = 0;
-	char* search_start = (char*) mapped_file;
-	while(search_start + signature_length <= (char*) mapped_file + file_size) {
-		char* match = (char*) memmem((void*) search_start, file_size, signature, signature_length);
-		if(match) {
-			num_matches++;
-			printf("Found signature at offset 0x%lx\n", match - (char*) mapped_file);
-		}
-		else {
-			break;
-		}
-		// Continue search from 1 byte behind match (so we find overlapping matches as well):
-		search_start = match+ 1;
-	}
-	printf("Found %d match(es) in total.\n", num_matches);
+	unsigned long num_matches = BINGREP_find_signature(mapped_file, file_size, signature, signature_length, &print_offset_verbose);
+
+	printf("Found %lu match(es) in total.\n", num_matches);
 
 	// Free resources and exit:
 	munmap(mapped_file, file_size);
