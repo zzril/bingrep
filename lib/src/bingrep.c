@@ -118,7 +118,8 @@ void BINGREP_close_file(BINGREP_File* file) {
 	return;
 }
 
-long BINGREP_find_signature	(	BINGREP_File* file, char* signature,
+long BINGREP_find_signature	(	BINGREP_File* file,
+					const char* signature,
 					size_t signature_length,
 					BINGREP_MatchHandler callback,
 					int finish_early	) {
