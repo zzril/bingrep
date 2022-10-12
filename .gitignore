@@ -1,2 +1,4 @@
-*.so
-bingrep
+lib/shared/
+build/
+bin/
+
