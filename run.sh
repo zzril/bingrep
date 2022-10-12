@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/sh -e
 
 command="./bin/bingrep"
 
@@ -8,7 +8,7 @@ make
 
 for example in examples/*; do
 	printf "\nChecking for ELF magic number in \"$example\"...\n"
-	$command "$ELF_MAGIC_NUMBER" "$example"
+	$command -v "$ELF_MAGIC_NUMBER" "$example" || true
 done
 
 

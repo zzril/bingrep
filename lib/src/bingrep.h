@@ -18,7 +18,7 @@ typedef unsigned short BINGREP_flags_t;
 
 typedef struct BINGREP_File BINGREP_File;
 
-typedef void (*BINGREP_MatchHandler)(ptrdiff_t offset);
+typedef void (*BINGREP_MatchHandler)(ptrdiff_t);
 
 // --------
 
