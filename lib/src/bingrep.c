@@ -55,7 +55,7 @@ static void free_content(BINGREP_File* file) {
 
 // --------
 
-BINGREP_File* BINGREP_open_file(const char* pathname) {
+BINGREP_File* BINGREP_open_file(const char* pathname, BINGREP_flags_t flags) {
 
 	BINGREP_File* file = malloc(sizeof(BINGREP_File));
 	if(file == NULL) { return NULL; }
@@ -67,17 +67,17 @@ BINGREP_File* BINGREP_open_file(const char* pathname) {
 	file->is_memory_mapped = 0;
 
 	file->fd = open(pathname, O_RDONLY);
-	if(file->fd < 0) { perror("open"); BINGREP_close_file(file); return -1; }
+	if(file->fd < 0) { perror("open"); BINGREP_close_file(file); return NULL; }
 
 	file->filesize = lseek(file->fd, 0, SEEK_END);
-	if(file->filesize < 0) { perror("lseek"); BINGREP_close_file(file); return -1; }
+	if(file->filesize < 0) { perror("lseek"); BINGREP_close_file(file); return NULL; }
 
 	// (For now, we always memory map the file. May instead switch to malloc for small files in the future.)
 	file->is_memory_mapped = 1;
 
 	if(file->is_memory_mapped) {
 		file->start_address = mmap(NULL, file->filesize, PROT_READ, MAP_PRIVATE, file->fd, 0);
-		if(file->start_address == MAP_FAILED) { perror("mmap"); BINGREP_close_file(file); return -1; }
+		if(file->start_address == MAP_FAILED) { perror("mmap"); BINGREP_close_file(file); return NULL; }
 	}
 	else {
 		// Not implemented yet

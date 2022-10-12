@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
 	// Parse hexstring:
 	signature_length = parse_hexstring(signature, argv[1]);
 
-	BINGREP_File* file = BINGREP_open_file(pathname);
+	BINGREP_File* file = BINGREP_open_file(pathname, 0);
 	if(file == NULL) { perror("BINGREP_open_file"); exit(EXIT_FAILURE); }
 
 	long num_matches = BINGREP_find_signature(file, signature, signature_length, &print_offset_verbose);

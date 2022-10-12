@@ -15,6 +15,8 @@ BIN=$(BIN_DIR)/$(NAME)
 LIB_SRC=$(LIB_SRC_DIR)/$(LIB_NAME).c
 LIB_BIN=$(LIB_BIN_DIR)/$(LIB_NAME).so
 
+HEADERS=$(LIB_SRC_DIR)/$(LIB_NAME).h
+
 # --------
 
 CC=clang
@@ -40,12 +42,12 @@ lib: $(LIB_BIN)
 
 # --------
 
-$(BIN): $(SRC) $(LIB_BIN)
+$(BIN): $(SRC) $(HEADERS) $(LIB_BIN)
 	mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $@ $^ $(LD_FLAGS)
+	$(CC) $(CFLAGS) -o $@ $< $(LIB_BIN)
 
-$(LIB_BIN): $(LIB_SRC)
+$(LIB_BIN): $(LIB_SRC) $(HEADERS)
 	mkdir -p $(LIB_BIN_DIR)
-	$(CC) $(LIB_CFLAGS) -o $@ $^
+	$(CC) $(LIB_CFLAGS) -o $@ $<
 
 
