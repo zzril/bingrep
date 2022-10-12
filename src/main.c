@@ -36,6 +36,7 @@ static void finish_flags(int argc, char** argv, Options* options);
 static size_t parse_hexstring(char* dest, const char* hexstring, size_t dest_length);
 
 static void print_usage_msg(FILE* stream, char* program_name, int detailed);
+static void fail_with_usage_msg(char* program_name);
 
 static void print_offset(ptrdiff_t offset);
 static void print_offset_verbose(ptrdiff_t offset);
@@ -95,8 +96,7 @@ static void parse_flags(int argc, char** argv, Options* options) {
 				options->verbose = 1;
 				break;
 			default:
-				print_usage_msg(stderr, argv[0], 0);
-				free_and_exit(EXIT_FAILURE);
+				fail_with_usage_msg(argv[0]);
 		}
 	}
 	finish_flags(argc, argv, options);
@@ -105,8 +105,7 @@ static void parse_flags(int argc, char** argv, Options* options) {
 
 static void finish_flags(int argc, char** argv, Options* options) {
 	if(argc != optind + 2) {
-		print_usage_msg(stderr, argv[0], 0);
-		free_and_exit(EXIT_FAILURE);
+		fail_with_usage_msg(argv[0]);
 	}
 	if(options->verbose < 0) {
 		options->match_handler = NULL;
@@ -138,6 +137,11 @@ static void print_usage_msg(FILE* stream, char* program_name, int detailed) {
 		puts("    your're not running this as part of a pipeline.");
 	}
 	return;
+}
+
+static void fail_with_usage_msg(char* program_name) {
+	print_usage_msg(stderr, program_name, 0);
+	free_and_exit(EXIT_FAILURE);
 }
 
 static size_t parse_hexstring(char* dest, const char* hexstring, size_t max_dest_length) {
