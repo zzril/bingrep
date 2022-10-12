@@ -3,9 +3,7 @@
 // --------
 
 #include <stdio.h>
-#include <stdlib.h>
 
-#include <errno.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
@@ -18,72 +16,90 @@
 
 // --------
 
-#define MAX_SIGNATURE_LEN 0x40
+static void close_fd(BINGREP_File* file);
+static void unmap_or_free(BINGREP_File* file);
 
 // --------
 
-// Private declarations:
-
-struct Resources;
-
-struct Resources {
-	int fd;
-	void* mempage;
-	char* file;
-	off_t file_size;
-};
-
-typedef struct Resources Resources;
-
-static __attribute__ ((destructor)) void free_resources();
-
-// --------
-
-// Global variables:
-
-static Resources g_resources = {
-	-1,		// fd
-	MAP_FAILED,	// mempage
-	NULL,		// file
-	0,		// file_size
-};
-
-// --------
-
-// Private implementations:
-
-static __attribute__ ((destructor)) void free_resources() {
-	if(g_resources.fd > 2) {
-		close(g_resources.fd);
-		g_resources.fd = -1;
+static void close_fd(BINGREP_File* file) {
+	if(file->fd > 2) {
+		close(file->fd);
 	}
-	if(g_resources.mempage != MAP_FAILED) {
-		munmap(g_resources.mempage, g_resources.file_size);
-		g_resources.mempage = MAP_FAILED;
+	file->fd = -1;
+	return;
+}
+
+static void unmap_or_free(BINGREP_File* file) {
+	if(file->is_memory_mapped) {
+		if(file->start_address != MAP_FAILED) {
+			munmap(file->start_address, file->filesize);
+		}
 	}
-	if(g_resources.file != NULL) {
-		free(g_resources.file);
-		g_resources.file = NULL;
+	else {
+		free(file->start_address);
 	}
-	g_resources.file_size = 0;
+	file->start_address = NULL;
+	file->is_memory_mapped = 0;
 	return;
 }
 
 // --------
 
-// Public implementations:
+int BINGREP_open_file_at(BINGREP_File* file, const char* pathname) {
 
-unsigned long BINGREP_find_signature(char* file, off_t file_size, char* signature, size_t signature_length, BINGREP_MatchHandler callback) {
+	// Init with default values, so the close function already works properly:
+	file->fd = -1;
+	file->filesize = 0;
+	file->start_address = NULL;
+	file->is_memory_mapped = 0;
+
+	file->fd = open(pathname, O_RDONLY);
+	if(file->fd < 0) { perror("open"); BINGREP_close_file_at(file); return -1; }
+
+	file->filesize = lseek(file->fd, 0, SEEK_END);
+	if(file->filesize < 0) { perror("lseek"); BINGREP_close_file_at(file); return -1; }
+
+	// (For now, we always memory map the file. May instead switch to malloc for small files in the future.)
+	file->is_memory_mapped = 1;
+
+	if(file->is_memory_mapped) {
+		file->start_address = mmap(NULL, file->filesize, PROT_READ, MAP_PRIVATE, file->fd, 0);
+		if(file->start_address == MAP_FAILED) { perror("mmap"); BINGREP_close_file_at(file); return -1; }
+	}
+	else {
+		// Not implemented yet
+	}
+
+	return 0;
+}
+
+void BINGREP_close_file_at(BINGREP_File* file) {
+	close_fd(file);
+	unmap_or_free(file);
+	return;
+}
+
+long BINGREP_find_signature(BINGREP_File* file, char* signature, size_t signature_length, BINGREP_MatchHandler callback) {
+
+	if(file == NULL) {
+		return -1;
+	}
+
+	char* file_start = file->start_address;
+	size_t file_size = file->filesize;
+	char* file_end = file_start + file_size;
+
 	size_t num_matches = 0;
-	char* search_start = file;
-	while(search_start + signature_length <= file + file_size) {
+	char* search_start = file_start;
+
+	while(search_start + signature_length <= file_end) {
 		char* match_addr = (char*) memmem((void*) search_start, file_size, signature, signature_length);
 		if(match_addr != NULL) {
 			num_matches++;
 			if(!(num_matches > 0)) {
 				fputs("WARNING: Number of matches incorrect due to integer overflow.\n", stderr);
 			}
-			callback(match_addr - file);
+			callback(match_addr - file_start);
 		}
 		else { // no more matches
 			break;
@@ -93,6 +109,5 @@ unsigned long BINGREP_find_signature(char* file, off_t file_size, char* signatur
 	}
 	return num_matches;
 }
-
 
 

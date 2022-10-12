@@ -5,15 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
-#include <unistd.h>
-
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
 #include "../lib/src/bingrep.h"
 
 // --------
@@ -22,25 +13,12 @@
 
 // --------
 
-static int g_filedes = -1;
-
-// --------
-
-static void free_and_exit(int exit_code);
 static void print_usage_msg(FILE* stream, char* program_name);
 static size_t parse_hexstring(char* dest, const char* hexstring);
 static void print_offset(ptrdiff_t offset);
 static void print_offset_verbose(ptrdiff_t offset);
 
 // --------
-
-static void free_and_exit(int exit_code) {
-	if(g_filedes > 2) {
-		close(g_filedes);
-		g_filedes = -1;
-	}
-	exit(exit_code);
-}
 
 static void print_usage_msg(FILE* stream, char* program_name) {
 	fprintf(stream, "Usage: %s hex_signature filename", program_name);
@@ -55,7 +33,7 @@ static size_t parse_hexstring(char* dest, const char* hexstring) {
 	while(hexstring[2*chars_read] != '\0' && chars_read < MAX_SIGNATURE_LEN) {
 		if(sscanf(hexstring + (2*chars_read), "%2hhx", &current_char) != 1) {
 			fprintf(stderr, "Could not parse hexstring \"%s\".\n", hexstring);
-			free_and_exit(EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		}
 		dest[chars_read] = current_char;
 		chars_read += 1;
@@ -82,36 +60,25 @@ static void print_offset_verbose(ptrdiff_t offset) {
 int main(int argc, char* argv[]) {
 
 	// Check args:
-	if(argc != 3) { print_usage_msg(stderr, argv[0]); free_and_exit(EXIT_FAILURE); }
+	if(argc != 3) { print_usage_msg(stderr, argv[0]); exit(EXIT_FAILURE); }
 
 	char signature[MAX_SIGNATURE_LEN];
 	size_t signature_length = 0;
-	const char* filename = argv[2];
+	const char* pathname = argv[2];
 
 	// Parse hexstring:
 	signature_length = parse_hexstring(signature, argv[1]);
 
-	// (Following `https://stackoverflow.com/a/54160576`:)
+	BINGREP_File file;
+	BINGREP_open_file_at(&file, pathname);
 
-	// Open file:
-	g_filedes = open(filename, O_RDONLY);
-	if(g_filedes < 0) { perror("open"); free_and_exit(EXIT_FAILURE); }
+	long num_matches = BINGREP_find_signature(&file, signature, signature_length, &print_offset_verbose);
 
-	// Get size:
-	off_t file_size = lseek(g_filedes, 0, SEEK_END);
-	if(file_size < 0) { perror("lseek"); free_and_exit(EXIT_FAILURE); }
-
-	// Create memory mapping for file:
-	void* mapped_file = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, g_filedes, 0);
-	if(mapped_file == MAP_FAILED) { perror("mmap"); free_and_exit(EXIT_FAILURE); }
-
-	unsigned long num_matches = BINGREP_find_signature(mapped_file, file_size, signature, signature_length, &print_offset_verbose);
-
-	printf("Found %lu match(es) in total.\n", num_matches);
+	//printf("Found %lu match(es) in total.\n", num_matches);
+	printf("Found %ld match(es) in total.\n", num_matches);
 
 	// Free resources and exit:
-	munmap(mapped_file, file_size);
-	close(g_filedes); g_filedes = -1;
+	BINGREP_close_file_at(&file);
 	exit(EXIT_SUCCESS);
 }
 
