@@ -1,16 +1,14 @@
 #! /bin/sh -e
 
-program="./bin/bingrep"
-library="./lib/bin/bingrep.so"
-
-command=$program
+command="./bin/bingrep"
 
 ELF_MAGIC_NUMBER="7f454c46"
 
 make
-printf "\nChecking \"$program\"...\n"
-$command "$ELF_MAGIC_NUMBER" "$program"
-printf "\nChecking \"$library\"...\n"
-$command "$ELF_MAGIC_NUMBER" "$library"
+
+for example in examples/*; do
+	printf "\nChecking for ELF magic number in \"$example\"...\n"
+	$command "$ELF_MAGIC_NUMBER" "$example"
+done
 
 
