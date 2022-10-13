@@ -194,7 +194,7 @@ static size_t parse_hexstring(char* dest, const char* hexstring, size_t max_dest
 }
 
 static void print_offset(ptrdiff_t offset) {
-	printf("%lx\n", offset);
+	printf("0x%lx\n", offset);
 	return;
 }
 
